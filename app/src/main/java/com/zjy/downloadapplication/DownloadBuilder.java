@@ -10,6 +10,9 @@ public class DownloadBuilder {
     private String fileName;
     private Context context;
     private DownloadListener downloadListener;
+    private PermissionListener permissionListener;
+    private boolean ignoreNonePermission;
+    private int taskCount;
 
     public DownloadBuilder(Context context) {
         this.context = context;
@@ -44,7 +47,25 @@ public class DownloadBuilder {
         return this;
     }
 
+    public DownloadBuilder setPermissionListener(PermissionListener permissionListener) {
+        this.permissionListener = permissionListener;
+        return this;
+    }
+
+    public DownloadBuilder setIgnoreNonePermission(boolean ignoreNonePermission) {
+        this.ignoreNonePermission = ignoreNonePermission;
+        return this;
+    }
+
+    public DownloadBuilder setTaskCount(int taskCount) {
+        this.taskCount = taskCount;
+        return this;
+    }
+
     public DownloadManager build() {
-        return new DownloadManager(baseUrl, url, filePath, fileName, context, downloadListener);
+        DownloadManager manager = new DownloadManager(baseUrl, url, filePath, fileName, context, downloadListener, permissionListener);
+        manager.setIgnoreNonePermission(ignoreNonePermission);
+        manager.setTaskCount(taskCount);
+        return manager;
     }
 }

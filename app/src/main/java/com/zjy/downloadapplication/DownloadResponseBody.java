@@ -1,5 +1,6 @@
 package com.zjy.downloadapplication;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -19,7 +20,7 @@ public class DownloadResponseBody extends ResponseBody {
     private DownloadListener listener;
     private BufferedSource bufferedSource;
 
-    public DownloadResponseBody(ResponseBody responseBody, DownloadListener listener) {
+    DownloadResponseBody(ResponseBody responseBody, DownloadListener listener) {
         this.responseBody = responseBody;
         this.listener = listener;
     }
@@ -44,12 +45,14 @@ public class DownloadResponseBody extends ResponseBody {
 
     private Source source(Source source) {
         return new ForwardingSource(source) {
+            private long size = 0;
             @Override
-            public long read(Buffer sink, long byteCount) throws IOException {
+            public long read(@NonNull Buffer sink, long byteCount) throws IOException {
                 long len = super.read(sink, byteCount);
                 Log.e("aaa", "read: " + len + "/" + byteCount + "/" + contentLength());
-                if (listener != null) {
-                    listener.downloadProgress(contentLength(), len, ((float) (len * 100)) / contentLength());
+                if (listener != null && len != -1) {
+                    size += len;
+                    listener.downloadProgress(contentLength(), size, ((float) (size * 100)) / contentLength());
                 }
                 return len;
             }

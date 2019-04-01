@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     long end;
     int taskCount = 1;
     private TextView textView;
+    private DownloadManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void download() {
         String url = ((EditText) findViewById(R.id.url)).getText().toString();
-        DownloadBuilder.with(MainActivity.this)
+        manager = DownloadBuilder.with(MainActivity.this)
                 .setUrl(url)
                 .setTaskCount(taskCount)
                 .setDownloadListener(new DownloadListener() {
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     public void downloadFailure(Throwable t) {
                         Log.e(TAG, "downloadFailure: " + t.toString());
                     }
-                }).build().download();
+                }).build();
+        manager.start();
     }
 }

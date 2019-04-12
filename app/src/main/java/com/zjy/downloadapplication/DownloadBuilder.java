@@ -13,6 +13,8 @@ public class DownloadBuilder {
     private PermissionListener permissionListener;
     private boolean ignoreNonePermission;
     private int taskCount;
+    private boolean showNotification;
+    private DownloadTask.OnUpdateNotification updateNotification;
 
     public DownloadBuilder(Context context) {
         this.context = context;
@@ -62,10 +64,23 @@ public class DownloadBuilder {
         return this;
     }
 
-    public DownloadManager build() {
-        DownloadManager manager = new DownloadManager(baseUrl, url, filePath, fileName, context, downloadListener, permissionListener);
+    public DownloadBuilder setShowNotification() {
+        this.showNotification = true;
+        return this;
+    }
+
+    public DownloadBuilder setShowNotification(DownloadTask.OnUpdateNotification updateNotification) {
+        this.showNotification = true;
+        this.updateNotification = updateNotification;
+        return this;
+    }
+
+    public DownloadTask build() {
+        DownloadTask manager = new DownloadTask(baseUrl, url, filePath, fileName, context, downloadListener, permissionListener);
         manager.setIgnoreNonePermission(ignoreNonePermission);
         manager.setTaskCount(taskCount);
+        manager.setShowNotification(showNotification);
+        manager.setUpdateNotification(updateNotification);
         return manager;
     }
 }

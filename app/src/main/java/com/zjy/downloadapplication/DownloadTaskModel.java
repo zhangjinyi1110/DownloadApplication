@@ -1,5 +1,7 @@
 package com.zjy.downloadapplication;
 
+import android.text.TextUtils;
+
 public class DownloadTaskModel {
 
     private String url;
@@ -31,6 +33,7 @@ public class DownloadTaskModel {
 
     public void setTaskCount(int taskCount) {
         this.taskCount = taskCount;
+        range = new String[taskCount];
     }
 
     public String[] getRange() {
@@ -62,5 +65,16 @@ public class DownloadTaskModel {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public long getCurrLen() {
+        long count = 0;
+        long item = fileLength / taskCount;
+        for (int i = 0; i < taskCount; i++) {
+            String[] len = range[i].split("-");
+            long start = Long.valueOf(len[0]);
+            count += start - item * i;
+        }
+        return count;
     }
 }

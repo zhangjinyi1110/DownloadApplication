@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -105,12 +106,19 @@ public class MainActivity extends AppCompatActivity {
                     public void downloadStart() {
                         start = System.currentTimeMillis();
                         Log.e(TAG, "downloadStart: " + taskCount);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "开始下载", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     @Override
                     public void downloadFinish() {
                         end = System.currentTimeMillis();
                         Log.e(TAG, "downloadFinish: " + (end - start));
+                        Toast.makeText(getApplicationContext(), "下载完成", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -123,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void downloadFailure(Throwable t) {
                         Log.e(TAG, "downloadFailure: " + t.toString());
+                        Toast.makeText(getApplicationContext(), "下载失败：" + t.toString(), Toast.LENGTH_SHORT).show();
                     }
                 }).build();
         manager.start();

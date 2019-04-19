@@ -23,6 +23,7 @@ import android.widget.RemoteViews;
 
 import com.google.gson.Gson;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -39,6 +40,7 @@ import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
@@ -219,6 +221,7 @@ public class DownloadTask {
                     public void onSubscribe(Subscription s) {
                         subscriptions.add(s);
                         s.request(Long.MAX_VALUE);
+                        Log.e("bbb", "onSubscribe: " + SPUtils.getString(context, taskModel.getUrl()));
                     }
 
                     @Override
@@ -251,15 +254,28 @@ public class DownloadTask {
 
     //更新进度监听
     private void updateListener(final long currLen, final long fileLength) {
+        final long[] downloadLength = {currLen};
         Flowable.create(new FlowableOnSubscribe<Integer>() {
             @Override
             public void subscribe(FlowableEmitter<Integer> e) {
                 emitter = e;
             }
         }, BackpressureStrategy.BUFFER)
+                .flatMap(new Function<Integer, Publisher<Float>>() {
+                    @Override
+                    public Publisher<Float> apply(Integer integer) throws Exception {
+                        downloadLength[0] += integer;
+                        float progress = ((float) (downloadLength[0] * 100)) / fileLength;
+                        if (showNotification) {
+                            if (updateNotification == null) {
+                                updateNotification(getDefNotify(progress));
+                            }
+                        }
+                        return Flowable.just(progress);
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Integer>() {
-                    private long downloadLength = currLen;
+                .subscribe(new Subscriber<Float>() {
 
                     @Override
                     public void onSubscribe(Subscription s) {
@@ -268,15 +284,10 @@ public class DownloadTask {
                     }
 
                     @Override
-                    public void onNext(Integer integer) {
-                        downloadLength += integer;
-                        float progress = ((float) (downloadLength * 100)) / fileLength;
-                        downloadListener.downloadProgress(fileLength, downloadLength, progress);
-                        if (showNotification) {
-                            if (updateNotification != null)
-                                updateNotification(updateNotification.onUpdate(fileLength, downloadLength, progress));
-                            else
-                                updateNotification(getDefNotify(progress));
+                    public void onNext(Float progress) {
+                        downloadListener.downloadProgress(fileLength, downloadLength[0], progress);
+                        if (showNotification && updateNotification != null) {
+                            updateNotification(updateNotification.onUpdate(fileLength, downloadLength[0], progress));
                         }
                     }
 
@@ -471,6 +482,7 @@ public class DownloadTask {
                 }
             }
             subscriptions.clear();
+            Log.e("bbb", "finish: " + SPUtils.getString(context, taskModel.getUrl()));
         }
     }
 

@@ -1,7 +1,5 @@
 package com.zjy.downloadapplication;
 
-import android.text.TextUtils;
-
 public class DownloadTaskModel {
 
     private String url;
@@ -10,6 +8,7 @@ public class DownloadTaskModel {
     private String[] range;
     private String fileName;
     private String filePath;
+    private long currLen;
 
     public String getUrl() {
         return url;
@@ -49,6 +48,7 @@ public class DownloadTaskModel {
 
     public void updateRange(int index, long start, long end) {
         range[index] = start + "-" + (end == -1 ? "" : end);
+        setCurrLen();
     }
 
     public String getFileName() {
@@ -68,13 +68,16 @@ public class DownloadTaskModel {
     }
 
     public long getCurrLen() {
-        long count = 0;
+        return currLen;
+    }
+
+    public void setCurrLen() {
+        currLen = 0;
         long item = fileLength / taskCount;
         for (int i = 0; i < taskCount; i++) {
             String[] len = range[i].split("-");
             long start = Long.valueOf(len[0]);
-            count += start - item * i;
+            currLen += start - item * i;
         }
-        return count;
     }
 }

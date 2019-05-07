@@ -62,7 +62,7 @@ public class DownloadTask {
     private DownloadApi downloadApi;
     private FlowableEmitter<Integer> emitter;
     private List<Subscription> subscriptions;
-    private DownloadTaskModel taskModel;
+    private volatile DownloadTaskModel taskModel;
     private Gson gson;
     private boolean downloading = false;
     private boolean showNotification = false;
@@ -164,6 +164,7 @@ public class DownloadTask {
                             prepare(responseBody.contentLength());//准备
                         } catch (IOException e) {
                             e.printStackTrace();
+                            downloading = false;
                             if (downloadListener != null) {
                                 downloadListener.downloadFailure(e);
                             }
@@ -172,6 +173,7 @@ public class DownloadTask {
 
                     @Override
                     public void onError(Throwable t) {
+                        downloading = false;
                         if (downloadListener != null) {
                             downloadListener.downloadFailure(t);
                         }
@@ -231,6 +233,7 @@ public class DownloadTask {
 
                     @Override
                     public void onError(Throwable t) {
+                        downloading = false;
                         if (downloadListener != null) {
                             downloadListener.downloadFailure(t);
                         }
@@ -238,6 +241,7 @@ public class DownloadTask {
 
                     @Override
                     public void onComplete() {
+                        downloading = false;
                         if (downloadListener != null) {
                             Log.e("aaa", "onComplete: " + SPUtils.getString(context, taskModel.getUrl()));
                             SPUtils.putString(context, taskModel.getUrl(), "");
@@ -486,12 +490,20 @@ public class DownloadTask {
         }
     }
 
+    public DownloadTaskModel getTaskModel() {
+        return taskModel;
+    }
+
     private String defValue(String text, String def) {
         return TextUtils.isEmpty(text) ? def : text;
     }
 
     void setIgnoreNonePermission(boolean ignoreNonePermission) {
         this.ignoreNonePermission = ignoreNonePermission;
+    }
+
+    boolean isDownloading() {
+        return downloading;
     }
 
     void setTaskCount(int taskCount) {
